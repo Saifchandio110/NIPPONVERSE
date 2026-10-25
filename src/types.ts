@@ -14,7 +14,9 @@ export interface Settings {
 
 export type Script = 'hira' | 'kata';
 export type KanaKind = 'basic' | 'dakuten' | 'handakuten' | 'yoon' | 'extra';
-export type QuizMode = 'read' | 'pick' | 'type' | 'cross';
+export type QuizMode = 'read' | 'pick' | 'type' | 'cross' | 'grammar';
+/** What a quiz covered: a kana script or the grammar lessons. */
+export type StudySet = Script | 'grammar';
 
 /** Text that exists in both teaching languages. */
 export interface Bilingual {
@@ -24,8 +26,8 @@ export interface Bilingual {
 
 export interface HistoryEntry {
   date: string; // ISO timestamp
-  script: Script;
-  scope: string; // 'all' | 'weak' | group id
+  script: StudySet;
+  scope: string; // 'all' | 'weak' | kana group id | grammar lesson id
   mode: QuizMode;
   correct: number;
   total: number;

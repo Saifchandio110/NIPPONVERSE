@@ -1,5 +1,6 @@
 import { POS_LABELS } from '../data/vocabulary/schema';
 import { exampleRomaji, getExample, getItems } from './kana';
+import { sentenceRomaji } from './sentenceRomaji';
 import { VOCAB_BY_ID, vocabRomaji } from './vocab';
 
 /** What the review screen shows for a card id. Kana ids look like hira:か, vocabulary ids like vocab:mizu. */
@@ -22,7 +23,7 @@ export function resolveCard(id: string): CardFace | null {
       speakText: v.reading,
       romaji: `${v.reading} · ${vocabRomaji(v)}`,
       meaning: { en: `${v.en} (${POS_LABELS[v.pos].en})`, ur: v.ur },
-      example: { word: v.example.ja, romaji: v.example.reading, en: v.example.en, ur: v.example.ur },
+      example: { word: v.example.ja, romaji: sentenceRomaji(v.example.ja) ?? v.example.reading, en: v.example.en, ur: v.example.ur },
     };
   }
   const item = kana.get(id);

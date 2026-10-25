@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Check, X } from 'lucide-react';
 import { normalizeAnswer, shuffle, type Question } from '../lib/quiz';
 import { useApp } from '../state/AppState';
-import { Button, Card, ProgressBar } from './ui';
+import { Bi, Button, Card, ProgressBar } from './ui';
 
 export interface QuizResult {
   itemId: string;
@@ -17,7 +17,9 @@ interface Props {
 }
 
 export default function Quiz({ questions, onFinish, onExit }: Props) {
-  const { t } = useApp();
+  const { t, data } = useApp();
+  const lang = data.settings.language;
+  const showRomaji = data.settings.showRomaji;
   const [round, setRound] = useState({ qs: questions, retry: false });
   const [index, setIndex] = useState(0);
   const [answer, setAnswer] = useState<string | null>(null);
@@ -108,10 +110,17 @@ export default function Quiz({ questions, onFinish, onExit }: Props) {
         <ProgressBar value={index + (submitted ? 1 : 0)} max={round.qs.length} label={label} />
       </div>
 
-      <p lang={q.promptLang} className="my-6 text-center text-7xl font-medium">{q.prompt}</p>
+      <p lang={q.promptLang} className={`my-4 text-center font-medium ${[...q.prompt].length > 6 ? 'text-3xl' : 'text-7xl'}`}>{q.prompt}</p>
+      {showRomaji && q.promptRomaji && <p lang="en" className="-mt-2 mb-3 text-center text-sm opacity-70">{q.promptRomaji}</p>}
+      {q.hint && (
+        <div className="mb-5 text-center text-sm opacity-80">
+          {q.hint.en && <p lang="en">{q.hint.en}</p>}
+          {q.hint.ur && <p lang="ur" dir="rtl">{q.hint.ur}</p>}
+        </div>
+      )}
 
       {q.kind === 'choice' ? (
-        <ul className="grid grid-cols-2 gap-3">
+        <ul className={`grid gap-3 ${q.options.some((o) => [...o].length > 5) ? 'grid-cols-1' : 'grid-cols-2'}`}>
           {q.options.map((opt, i) => {
             const isAnswer = submitted && opt === q.answer;
             const isWrongPick = submitted && opt === answer && opt !== q.answer;
@@ -121,12 +130,15 @@ export default function Quiz({ questions, onFinish, onExit }: Props) {
                   type="button"
                   disabled={submitted}
                   onClick={() => submit(opt)}
-                  className={`flex w-full items-center justify-between gap-2 rounded-lg border-2 px-4 py-3 text-xl ${
+                  className={`flex w-full items-center justify-between gap-2 rounded-lg border-2 px-4 py-3 ${[...opt].length > 5 ? 'text-lg' : 'text-xl'} ${
                     isAnswer ? 'border-green-600 bg-green-50 text-green-900' : isWrongPick ? 'border-red-600 bg-red-50 text-red-900' : 'border-navy/20 bg-white text-navy hover:bg-navy/5'
                   }`}
                 >
                   <span className="text-xs opacity-60">{i + 1}</span>
-                  <span lang={q.optionLang}>{opt}</span>
+                  <span className="text-center">
+                    <span lang={q.optionLang}>{opt}</span>
+                    {showRomaji && q.optionRomaji?.[opt] && <span lang="en" className="block text-xs opacity-70">{q.optionRomaji[opt]}</span>}
+                  </span>
                   <span className="w-5">{isAnswer ? <Check size={18} aria-label={t('correct')} /> : isWrongPick ? <X size={18} aria-label={t('incorrect')} /> : null}</span>
                 </button>
               </li>
@@ -166,7 +178,9 @@ export default function Quiz({ questions, onFinish, onExit }: Props) {
             {correctNow ? <Check size={18} /> : <X size={18} />} {correctNow ? t('correct') : t('incorrect')}
           </p>
           {!correctNow && <p className="mt-1">{t('answerWas', { answer: q.answer })}</p>}
-          <p className="mt-1 text-sm">{t(q.explanationKey, q.explanationVars)}</p>
+          <div className="mt-1 text-sm">
+            {q.explanationText ? <Bi text={q.explanationText} primary={lang} /> : q.explanationKey ? <p>{t(q.explanationKey, q.explanationVars)}</p> : null}
+          </div>
           <Button autoFocus variant="primary" className="mt-3" onClick={next}>
             {index + 1 >= round.qs.length ? t('seeResults') : t('next')}
           </Button>

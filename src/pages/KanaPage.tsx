@@ -11,6 +11,8 @@ import { speak, type SpeakResult } from '../lib/speech';
 import { useApp } from '../state/AppState';
 import type { KanaKind, QuizMode, Script } from '../types';
 
+type KanaMode = Exclude<QuizMode, 'grammar'>;
+
 const SECTIONS: { title: Key; kinds: KanaKind[] }[] = [
   { title: 'sectionBasic', kinds: ['basic'] },
   { title: 'sectionVoiced', kinds: ['dakuten', 'handakuten'] },
@@ -33,7 +35,7 @@ export default function KanaPage({ script }: { script: Script }) {
   const [speechMsg, setSpeechMsg] = useState<SpeakResult | null>(null);
   const requested = params.get('scope');
   const [scope, setScope] = useState(requested && (requested === 'all' || requested === 'weak' || groups.some((g) => g.id === requested)) ? requested : 'all');
-  const [mode, setMode] = useState<QuizMode>('read');
+  const [mode, setMode] = useState<KanaMode>('read');
   const [length, setLength] = useState(10);
   const [session, setSession] = useState<{ questions: Question[]; scope: string; mode: QuizMode } | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -62,8 +64,8 @@ export default function KanaPage({ script }: { script: Script }) {
   const example = selected ? getExample(selected) : undefined;
   const otherForm = selected && selected.kind !== 'extra' ? (script === 'hira' ? toKatakana(selected.char) : [...getItems('hira')].find((i) => toKatakana(i.char) === selected.char)?.char) : undefined;
   const pronounce = (text: string) => setSpeechMsg(speak(text));
-  const modeOptions: QuizMode[] = script === 'kata' ? ['read', 'pick', 'type', 'cross'] : ['read', 'pick', 'type'];
-  const modeKey: Record<QuizMode, Key> = { read: 'modeRead', pick: 'modePick', type: 'modeType', cross: 'modeCross' };
+  const modeOptions: KanaMode[] = script === 'kata' ? ['read', 'pick', 'type', 'cross'] : ['read', 'pick', 'type'];
+  const modeKey: Record<KanaMode, Key> = { read: 'modeRead', pick: 'modePick', type: 'modeType', cross: 'modeCross' };
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
@@ -177,7 +179,7 @@ export default function KanaPage({ script }: { script: Script }) {
                 </label>
                 <label className="block text-sm font-medium">
                   {t('mode')}
-                  <select className={select} value={mode} onChange={(e) => setMode(e.target.value as QuizMode)}>
+                  <select className={select} value={mode} onChange={(e) => setMode(e.target.value as KanaMode)}>
                     {modeOptions.map((m) => <option key={m} value={m}>{t(modeKey[m])}</option>)}
                   </select>
                 </label>

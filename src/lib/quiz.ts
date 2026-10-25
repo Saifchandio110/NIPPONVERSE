@@ -1,5 +1,5 @@
 import type { Key } from '../i18n/en';
-import type { QuizMode } from '../types';
+import type { Bilingual, QuizMode } from '../types';
 import { toHiragana, type KanaItem } from './kana';
 
 export type Rng = () => number;
@@ -24,8 +24,12 @@ export interface Question {
   optionLang: 'ja' | 'en';
   answer: string; // canonical answer shown to the learner
   accepted: string[]; // normalized answers accepted for typing questions
-  explanationKey: Key;
-  explanationVars: Record<string, string>;
+  explanationKey?: Key; // translated UI text (kana questions)
+  explanationVars?: Record<string, string>;
+  explanationText?: Bilingual; // authored bilingual text (grammar questions)
+  hint?: Bilingual; // shown under the prompt; empty strings are skipped
+  promptRomaji?: string; // pronunciation of a Japanese prompt, in English letters
+  optionRomaji?: Record<string, string>; // pronunciation of Japanese options, keyed by option text
 }
 
 export const normalizeAnswer = (s: string) => s.trim().toLowerCase().replace(/\s+/g, '');

@@ -1,11 +1,13 @@
 import { Link } from 'react-router-dom';
-import { VOCAB_BY_ID } from '../lib/vocab';
 import { Card, ProgressBar } from '../components/ui';
+import { GRAMMAR, GRAMMAR_BY_ID } from '../data/grammar/lessons';
+import { grammarLessonId, weakGrammarIds } from '../lib/grammarQuiz';
 import { getGroups, getItems, groupLabel, lessonId } from '../lib/kana';
 import { buildQueue } from '../lib/srs';
 import { computeStreak, dateKey, lastDays } from '../lib/stats';
+import { VOCAB_BY_ID } from '../lib/vocab';
 import { useApp } from '../state/AppState';
-import type { Script } from '../types';
+import type { Script, StudySet } from '../types';
 
 const SCRIPTS: Script[] = ['hira', 'kata'];
 const PATH: Record<Script, string> = { hira: '/hiragana', kata: '/katakana' };
@@ -21,23 +23,38 @@ export default function Dashboard() {
   const peak = Math.max(1, ...counts);
   const locale = language === 'ur' ? 'ur-PK' : 'en-GB';
 
-  const allLessons = SCRIPTS.flatMap((s) => getGroups(s).map((g) => ({ script: s, group: g, id: lessonId(s, g.id) })));
-  const doneSet = new Set(completedLessons);
-  const doneCount = allLessons.filter((l) => doneSet.has(l.id)).length;
-  const queue = buildQueue(data.progress, { newPerDay: data.settings.newCardsPerDay, reviewsPerDay: data.settings.reviewsPerDay }, new Date());
-  const next = allLessons.find((l) => !doneSet.has(l.id));
+  const scriptName = (s: StudySet) => t(s === 'hira' ? 'hiragana' : s === 'kata' ? 'katakana' : 'navGrammar');
+  const scopeLabel = (s: StudySet, scope: string) => {
+    if (scope === 'all') return t('scopeAll');
+    if (scope === 'weak') return t('scopeWeak');
+    if (s === 'grammar') return GRAMMAR_BY_ID.get(scope)?.title[language] ?? scope;
+    const groups = getGroups(s);
+    return groupLabel(groups.find((g) => g.id === scope) ?? groups[0], s);
+  };
 
-  const scriptName = (s: Script) => t(s === 'hira' ? 'hiragana' : 'katakana');
-  const scopeLabel = (s: Script, scope: string) =>
-    scope === 'all' ? t('scopeAll') : scope === 'weak' ? t('scopeWeak') : groupLabel(getGroups(s).find((g) => g.id === scope) ?? getGroups(s)[0], s);
+  // Kana lessons first, then grammar lessons in order.
+  const lessons = [
+    ...SCRIPTS.flatMap((s) =>
+      getGroups(s).map((g) => ({ id: lessonId(s, g.id), name: `${scriptName(s)} · ${groupLabel(g, s)}`, to: `${PATH[s]}?scope=${g.id}` })),
+    ),
+    ...[...GRAMMAR].sort((a, b) => a.order - b.order).map((l) => ({ id: grammarLessonId(l.id), name: `${scriptName('grammar')} · ${l.title[language]}`, to: `/grammar/${l.id}` })),
+  ];
+  const doneSet = new Set(completedLessons);
+  const doneCount = lessons.filter((l) => doneSet.has(l.id)).length;
+  const next = lessons.find((l) => !doneSet.has(l.id));
+
+  const queue = buildQueue(data.progress, { newPerDay: data.settings.newCardsPerDay, reviewsPerDay: data.settings.reviewsPerDay }, new Date());
 
   const weakList = SCRIPTS.flatMap((s) => getItems(s))
     .filter((i) => (weak[i.id] ?? 0) > 0)
     .sort((a, b) => (weak[b.id] ?? 0) - (weak[a.id] ?? 0))
     .slice(0, 8);
   const weakScripts = SCRIPTS.filter((s) => weakList.some((i) => i.script === s));
+  const grammarWeak = weakGrammarIds(weak).length;
 
   const link = 'inline-block rounded-lg px-4 py-2 text-sm font-medium';
+  const primaryLink = `${link} bg-vermilion text-white hover:bg-red-700`;
+  const plainLink = `${link} border border-navy/20 bg-white text-navy hover:bg-navy/5`;
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -49,12 +66,8 @@ export default function Dashboard() {
       <Card title={t('nextLesson')}>
         {next ? (
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-xl">
-              {scriptName(next.script)} · <span lang="ja">{groupLabel(next.group, next.script)}</span>
-            </p>
-            <Link to={`${PATH[next.script]}?scope=${next.group.id}`} className={`${link} bg-vermilion text-white hover:bg-red-700`}>
-              {t('continueLearning')}
-            </Link>
+            <p className="text-xl">{next.name}</p>
+            <Link to={next.to} className={primaryLink}>{t('continueLearning')}</Link>
           </div>
         ) : (
           <p>{t('allDone')}</p>
@@ -66,7 +79,7 @@ export default function Dashboard() {
           <p>
             {t('dueNow')}: <strong>{queue.due.length}</strong> · {t('newAvailable')}: <strong>{queue.fresh.length}</strong>
           </p>
-          <Link to="/review" className={`${link} border border-navy/20 bg-white text-navy hover:bg-navy/5`}>{t('goReview')}</Link>
+          <Link to="/review" className={plainLink}>{t('goReview')}</Link>
         </div>
       </Card>
 
@@ -75,7 +88,7 @@ export default function Dashboard() {
           <p className="text-3xl font-bold">{t('streakDays', { n: computeStreak(activity) })}</p>
         </Card>
         <Card title={t('lessonsCompleted')}>
-          <p className="text-3xl font-bold">{t('lessonsOf', { n: doneCount, total: allLessons.length })}</p>
+          <p className="text-3xl font-bold">{t('lessonsOf', { n: doneCount, total: lessons.length })}</p>
         </Card>
         <Card title={t('todayGoal')}>
           <p className="mb-2 text-sm">{t('goalProgress', { done: today, goal: dailyGoal })}</p>
@@ -86,10 +99,12 @@ export default function Dashboard() {
       <Card title={t('quickAccess')}>
         <div className="flex flex-wrap gap-2">
           {SCRIPTS.map((s) => (
-            <Link key={s} to={PATH[s]} className={`${link} border border-navy/20 bg-white text-navy hover:bg-navy/5`}>
+            <Link key={s} to={PATH[s]} className={plainLink}>
               {scriptName(s)} <span lang="ja">{s === 'hira' ? 'ひらがな' : 'カタカナ'}</span>
             </Link>
           ))}
+          <Link to="/grammar" className={plainLink}>{t('navGrammar')}</Link>
+          <Link to="/vocabulary" className={plainLink}>{t('navVocabulary')}</Link>
         </div>
       </Card>
 
@@ -127,24 +142,27 @@ export default function Dashboard() {
           )}
         </Card>
         <Card title={t('weakAreas')}>
-          {weakList.length === 0 ? (
+          {weakList.length === 0 && grammarWeak === 0 ? (
             <p className="opacity-75">{t('weakEmpty')}</p>
           ) : (
             <>
-              <ul className="mb-3 flex flex-wrap gap-2">
-                {weakList.map((i) => (
-                  <li key={i.id} className="rounded-lg border border-navy/15 px-3 py-1 text-center" title={t('misses', { n: weak[i.id] })}>
-                    <span lang="ja" className="text-xl">{i.char}</span>
-                    <span className="block text-xs opacity-70">{t('misses', { n: weak[i.id] })}</span>
-                  </li>
-                ))}
-              </ul>
+              {weakList.length > 0 && (
+                <ul className="mb-3 flex flex-wrap gap-2">
+                  {weakList.map((i) => (
+                    <li key={i.id} className="rounded-lg border border-navy/15 px-3 py-1 text-center" title={t('misses', { n: weak[i.id] })}>
+                      <span lang="ja" className="text-xl">{i.char}</span>
+                      <span className="block text-xs opacity-70">{t('misses', { n: weak[i.id] })}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
               <div className="flex flex-wrap gap-2">
                 {weakScripts.map((s) => (
-                  <Link key={s} to={`${PATH[s]}?scope=weak`} className={`${link} bg-vermilion text-white hover:bg-red-700`}>
+                  <Link key={s} to={`${PATH[s]}?scope=weak`} className={primaryLink}>
                     {t('practiceWeak')}: {scriptName(s)}
                   </Link>
                 ))}
+                {grammarWeak > 0 && <Link to="/grammar" className={primaryLink}>{t('grammarToRevisit', { n: grammarWeak })}</Link>}
               </div>
             </>
           )}

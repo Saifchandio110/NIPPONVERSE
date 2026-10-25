@@ -2,6 +2,8 @@ import { Route, Routes } from 'react-router-dom';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
+import Grammar from './pages/Grammar';
+import GrammarLesson from './pages/GrammarLesson';
 import KanaPage from './pages/KanaPage';
 import VocabDetail from './pages/VocabDetail';
 import Vocabulary from './pages/Vocabulary';
@@ -19,6 +21,8 @@ export default function App() {
             <Route index element={<Dashboard />} />
             <Route path="hiragana" element={<KanaPage key="hira" script="hira" />} />
             <Route path="katakana" element={<KanaPage key="kata" script="kata" />} />
+            <Route path="grammar" element={<Grammar />} />
+            <Route path="grammar/:id" element={<GrammarLesson />} />
             <Route path="vocabulary" element={<Vocabulary />} />
             <Route path="vocabulary/:id" element={<VocabDetail />} />
             <Route path="review" element={<Review />} />

@@ -4,12 +4,12 @@ import { ur } from '../i18n/ur';
 import { dateKey } from '../lib/stats';
 import { addCards, applyReview, removeCard } from '../lib/srs';
 import { defaultData, loadData, saveData } from '../lib/storage';
-import type { PersistedData, QuizMode, Rating, Script, Settings } from '../types';
+import type { PersistedData, QuizMode, Rating, Settings, StudySet } from '../types';
 
 type Vars = Record<string, string | number>;
 
 export interface QuizReport {
-  script: Script;
+  script: StudySet;
   scope: string;
   mode: QuizMode;
   results: { itemId: string; correct: boolean }[];

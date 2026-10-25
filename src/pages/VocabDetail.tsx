@@ -4,6 +4,8 @@ import { ListMinus, ListPlus, Star, Volume2 } from 'lucide-react';
 import VocabImage from '../components/VocabImage';
 import { Breadcrumbs, Button, Card } from '../components/ui';
 import { POS_LABELS, TOPICS } from '../data/vocabulary/schema';
+import PronunciationGuide from '../components/PronunciationGuide';
+import { sentenceRomaji } from '../lib/sentenceRomaji';
 import { speak, type SpeakResult } from '../lib/speech';
 import { VOCAB_BY_ID, vocabCardId, vocabRomaji } from '../lib/vocab';
 import { useApp } from '../state/AppState';
@@ -82,11 +84,14 @@ export default function VocabDetail() {
       <Card title={t('exampleSentence')}>
         <p lang="ja" className="text-2xl">{entry.example.ja}</p>
         <p lang="ja" className="mt-1 text-sm opacity-80">{entry.example.reading}</p>
+        {data.settings.showRomaji && sentenceRomaji(entry.example.ja) && <p lang="en" className="mt-1 text-sm font-medium">{sentenceRomaji(entry.example.ja)}</p>}
         <p lang="en" className="mt-3">{entry.example.en}</p>
         <p lang="ur" dir="rtl" className="mt-1">{entry.example.ur}</p>
-        <Button className="mt-3" onClick={() => say(entry.example.reading)}><Volume2 size={16} /> {t('listenSentence')}</Button>
+        <Button className="mt-3" onClick={() => say(entry.example.ja)}><Volume2 size={16} /> {t('listenSentence')}</Button>
         <p className="mt-3 text-xs opacity-70">{t('furiganaNote')}</p>
       </Card>
+
+      <PronunciationGuide />
 
       {speechMsg && speechMsg !== 'ok' && (
         <p role="alert" className="text-sm text-red-700">{t(speechMsg === 'unsupported' ? 'speechUnsupported' : 'speechNoVoice')}</p>

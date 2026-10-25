@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Star } from 'lucide-react';
+import PronunciationGuide from '../components/PronunciationGuide';
 import VocabImage from '../components/VocabImage';
 import { Button, Card } from '../components/ui';
 import { POS_LABELS, TOPICS, type Pos, type TopicId } from '../data/vocabulary/schema';
@@ -39,6 +40,8 @@ export default function Vocabulary() {
         <h1 className="text-3xl font-bold">{t('vocabTitle')}</h1>
         <p className="mt-1 text-sm opacity-75">{t('vocabNote', { n: VOCAB.length })}</p>
       </header>
+
+      <PronunciationGuide />
 
       <Card>
         <div className="grid gap-3 md:grid-cols-4">

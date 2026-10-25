@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { BookOpen, LayoutDashboard, Languages, Menu, Moon, RefreshCw, Settings as SettingsIcon, Shapes, Sun, Type, X } from 'lucide-react';
+import { BookOpen, GraduationCap, LayoutDashboard, Languages, Menu, Moon, RefreshCw, Settings as SettingsIcon, Shapes, Sun, Type, X } from 'lucide-react';
 import type { Key } from '../i18n/en';
 import { useApp } from '../state/AppState';
 import { Button } from './ui';
@@ -11,6 +11,7 @@ const NAV: { to: string; icon: typeof LayoutDashboard; label: Key }[] = [
   { to: '/hiragana', icon: Type, label: 'hiragana' },
   { to: '/katakana', icon: Shapes, label: 'katakana' },
   { to: '/vocabulary', icon: BookOpen, label: 'navVocabulary' },
+  { to: '/grammar', icon: GraduationCap, label: 'navGrammar' },
   { to: '/review', icon: RefreshCw, label: 'navReview' },
   { to: '/settings', icon: SettingsIcon, label: 'navSettings' },
 ];

@@ -109,12 +109,12 @@ function isLogEntry(e: unknown): e is ReviewLogEntry {
   );
 }
 
-const MODES = ['read', 'pick', 'type', 'cross'];
+const MODES = ['read', 'pick', 'type', 'cross', 'grammar'];
 function isHistoryEntry(h: unknown): h is HistoryEntry {
   return (
     isObj(h) &&
     typeof h.date === 'string' &&
-    (h.script === 'hira' || h.script === 'kata') &&
+    (h.script === 'hira' || h.script === 'kata' || h.script === 'grammar') &&
     typeof h.scope === 'string' &&
     typeof h.mode === 'string' &&
     MODES.includes(h.mode) &&

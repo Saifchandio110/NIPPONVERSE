@@ -91,6 +91,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           return {
             ...d,
             progress: {
+              ...d.progress,
               activity: { ...d.progress.activity, [key]: (d.progress.activity[key] ?? 0) + total },
               completedLessons: [...completed],
               weak,

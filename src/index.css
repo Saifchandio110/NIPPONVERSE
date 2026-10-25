@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { font-family: theme('fontFamily.sans'); }
+  body { @apply bg-paper text-navy; }
+  :lang(ja) { font-family: theme('fontFamily.jp'); }
+  :lang(ur) { font-family: theme('fontFamily.ur'); line-height: 2; }
+  :focus-visible { outline: 3px solid theme('colors.vermilion'); outline-offset: 2px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+.dark body { background-color: #14213D; color: #FBF8F3; }
+.dark input, .dark select { background-color: #FFFFFF; }

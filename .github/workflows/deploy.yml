@@ -1,5 +1,3 @@
-# Builds the site and publishes it to GitHub Pages whenever you push to main.
-# One-time setup: repository Settings -> Pages -> Build and deployment -> Source: "GitHub Actions".
 name: Deploy to GitHub Pages
 
 on:
@@ -30,9 +28,7 @@ jobs:
       - run: npm test
       - run: npm run check:images
       - run: npm run build
-      -       - uses: actions/configure-pages@v4
-        with:
-          enablement: true
+      - uses: actions/configure-pages@v4
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
